@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import { Inter } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -13,7 +14,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className="h-full bg-white">
       <body className={`${inter.className} h-full`} >
+        <Suspense>
         <Navbar/>
+        </Suspense>
         {children}
         </body>
     </html>

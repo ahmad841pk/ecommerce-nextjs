@@ -2,6 +2,7 @@
 import {useState } from 'react'
 import ProductCard from '@/components/ProductCard'
 import ProductFilters from '@/components/Filters'
+import { Suspense } from 'react';
 
 
 
@@ -14,7 +15,9 @@ const [sortBy, setSortBy] = useState("");
   return (
     <>   
     <ProductFilters selectedCategories={selectedCategories} selectedPriceRanges={selectedPriceRanges} setSelectedCategories={setSelectedCategories} setSelectedPriceRanges={setSelectedPriceRanges} sortBy={sortBy} setSortBy={setSortBy}/>
+    <Suspense>
     <ProductCard selectedCategories={selectedCategories} selectedPriceRanges={selectedPriceRanges} sortBy={sortBy}/>
+    </Suspense>
     </>
   )
 }
