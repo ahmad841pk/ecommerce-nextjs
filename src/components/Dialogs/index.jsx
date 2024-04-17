@@ -3,7 +3,7 @@ import { Dialog, Transition } from '@headlessui/react'
 import { CheckIcon } from '@heroicons/react/24/outline'
 import SelectBox from '../FormElements/SelectBox'
 
-export default function DialogModal({ open, setOpen }) {
+export default function DialogModal({ open, setOpen, fetchProducts }) {
     const productNameRef = useRef()
     const priceRef = useRef()
     const [selectedCategory, setSelectedCategory] = useState()
@@ -42,6 +42,7 @@ export default function DialogModal({ open, setOpen }) {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
+            fetchProducts(null, [], [], "");
             setOpen(!open)
 
         } catch (error) {

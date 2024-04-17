@@ -102,7 +102,6 @@ export async function GET(req) {
       where: whereClause,
       orderBy: orderBy,
     });
-
     return NextResponse.json({ data: resp, status: 200 });
   } catch (error) {
     console.error('Error fetching products:', error);
