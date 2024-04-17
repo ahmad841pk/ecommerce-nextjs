@@ -3,11 +3,11 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 const categories = [
-    { name: 'new-arrivals' },
-    { name: 'tees' },
-    { name: 'crewnecks' },
-    { name: 'electronics' },
-    { name: 'sports' }
+    { id: 2, name: 'new-arrivals' },
+    { id: 4, name: 'tees' },
+    { id: 3, name: 'crewnecks' },
+    { id: 5, name: 'electronics' },
+    { id: 1, name: 'sports' }
 ];
 
 async function categorySeed() {
@@ -15,6 +15,7 @@ async function categorySeed() {
     await Promise.all(categories.map(async (category) => {
         await prisma.category.create({
             data: {
+                id: category.id,
                 name: category.name
             }
         });
