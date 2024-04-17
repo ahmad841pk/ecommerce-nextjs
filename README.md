@@ -2,7 +2,7 @@
 
 run commands
 
-mpm i 
+npm i 
 cp .env.example .env
 npx prisma db push
 npx prisma generate
