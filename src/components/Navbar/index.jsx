@@ -1,32 +1,50 @@
 "use client"
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { Disclosure, Menu, Transition } from '@headlessui/react'
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import { Bars3Icon, BellIcon, ShoppingCartIcon, XMarkIcon } from '@heroicons/react/24/outline'
-import { usePathname, useSearchParams, useRouter  } from 'next/navigation'
+import { usePathname, useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useDebouncedCallback } from 'use-debounce';
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
+export default function Navbar({ products }) {
 
-export default function Navbar() {
-    const pathname = usePathname()
-    const searchParams = useSearchParams();
-    const { replace } = useRouter();
+  const pathname = usePathname()
+  const searchParams = useSearchParams();
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const { replace } = useRouter();
 
-    const  handleSearch = useDebouncedCallback((term)=> {
-      const params = new URLSearchParams(searchParams);
-      if (term) {
-        params.set('query', term);
-      } else {
-        params.delete('query');
-      }
-      replace(`${pathname}?${params.toString()}`);
+  const handleInput = useDebouncedCallback((term) => {
+    if (term) {
+      const filter_products = products?.filter(product => product.name.toLowerCase().includes(term));
+      setSuggestions(filter_products);
+      setShowSuggestions(true);
+    } else {
+      handleSearch(term);
+    }
 
-      console.log(term);
-    }, 300);
+
+  }, 300);
+
+  const handleSuggestionClick = (suggestion) => {
+    document.getElementById('search').value = suggestion;
+    setShowSuggestions(false);
+
+    handleSearch(suggestion);
+  };
+
+  const handleSearch = (term) => {
+    const params = new URLSearchParams(searchParams);
+    if (term) {
+      params.set('query', term);
+    } else {
+      params.delete('query');
+    }
+    replace(`${pathname}?${params.toString()}`);
+    setShowSuggestions(false)
+  };
+
   return (
     <Disclosure as="nav" className="bg-white shadow">
       {({ open }) => (
@@ -34,7 +52,7 @@ export default function Navbar() {
           <div className="mx-auto max-w-7xl px-2 sm:px-4 lg:px-8">
             <div className="flex h-16 justify-between">
               <div className="flex px-2 lg:px-0">
-              <div className="flex flex-shrink-0 items-center">
+                <div className="flex flex-shrink-0 items-center">
                   <img
                     className="h-8 w-auto"
                     src="/shop_logo.png"
@@ -45,14 +63,14 @@ export default function Navbar() {
                   {/* Current: "border-indigo-500 text-gray-900", Default: "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700" */}
                   <Link
                     href="/"
-                    className={`inline-flex items-center border-b-2 ${(pathname == '/')? "border-indigo-500" : "border-transparent"} px-1 pt-1 text-sm font-medium text-gray-900`}
+                    className={`inline-flex items-center border-b-2 ${(pathname == '/') ? "border-indigo-500" : "border-transparent"} px-1 pt-1 text-sm font-medium text-gray-900`}
                   >
                     Home
                   </Link>
                 </div>
               </div>
               <div className="flex flex-1 items-center justify-center px-2 lg:ml-6 lg:justify-end">
-                <div className="w-full max-w-lg lg:max-w-xs">
+                <div className="w-full max-w-lg lg:max-w-xs flex space-x-2">
                   <label htmlFor="search" className="sr-only">
                     Search
                   </label>
@@ -67,11 +85,29 @@ export default function Navbar() {
                       placeholder="Search"
                       type="search"
                       onChange={(e) => {
-                        handleSearch(e.target.value);
+                        handleInput(e.target.value);
                       }}
                       defaultValue={searchParams.get('query')?.toString()}
                     />
+                    {showSuggestions && (
+                      <div className="absolute z-10 w-full mt-1 bg-white rounded-md shadow-lg">
+                        <ul className="py-1 text-base leading-6">
+                          {suggestions?.slice(0, 6).map((suggestion, index) => (
+                            <li key={index} className="px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={() => handleSuggestionClick(suggestion.name)}>
+                              {suggestion.name}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
+                  <button
+                      type="button"
+                      className="rounded bg-indigo-600 px-2 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                      onClick={()=>handleSuggestionClick(document.getElementById('search').value)}
+                    >
+                      Search
+                    </button>
                 </div>
               </div>
               <div className="flex items-center lg:hidden">

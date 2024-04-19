@@ -100,6 +100,13 @@ export async function GET(req) {
 
     const resp = await prisma.product.findMany({
       where: whereClause,
+      include: {
+        category: {
+          select: {
+            name: true
+          }
+        }
+      },
       orderBy: orderBy,
     });
     return NextResponse.json({ data: resp, status: 200 });

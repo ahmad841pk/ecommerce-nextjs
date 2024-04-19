@@ -1,19 +1,18 @@
-import { PlusCircleIcon } from "@heroicons/react/20/solid"
 import { useEffect, useState } from "react"
 import DialogModal from "../Dialogs"
-import { usePathname, useSearchParams } from 'next/navigation'
-import { useRouter } from "next/navigation"
 
 
-export default function ProductCard({ selectedCategories, selectedPriceRanges, sortBy }) {
-    const pathname = usePathname()
+export default function ProductCard({ selectedCategories, selectedPriceRanges, sortBy, setAllProducts, query }) {
+
     const [open, setOpen] = useState(false)
     const [products, setProducts] = useState([])
-    const searchParams = useSearchParams();
+    const [loading, setLoading] = useState(false);
 
-    const search = searchParams?.get('query')
+    const search = query;
+
 
     async function fetchProducts(query, categories, priceRanges, sort) {
+        setLoading(true);
         try {
             let url = 'api/products';
             let queryParams = [];
@@ -29,11 +28,11 @@ export default function ProductCard({ selectedCategories, selectedPriceRanges, s
             }
             if (sort) {
                 queryParams.push(`sort=${sort}`);
-        
+
             }
             if (queryParams.length > 0) {
                 url += '?' + queryParams.join('&');
-                
+
             }
             const response = await fetch(url);
 
@@ -43,6 +42,11 @@ export default function ProductCard({ selectedCategories, selectedPriceRanges, s
 
             const { data } = await response.json();
             setProducts(data);
+            setLoading(false);
+
+            if (!queryParams.length > 0) {
+                setAllProducts(data)
+            }
         } catch (error) {
             console.error('There was a problem with the fetch operation:', error);
         }
@@ -52,21 +56,28 @@ export default function ProductCard({ selectedCategories, selectedPriceRanges, s
         fetchProducts(search, selectedCategories, selectedPriceRanges, sortBy)
     }, [search, selectedCategories, selectedPriceRanges, sortBy])
 
+    if (loading) {
+
+        return <div className="flex justify-center items-center h-screen">
+            Loading...
+        </div>
+    }
+
     return (
         <div className="bg-white">
             <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:max-w-7xl lg:px-8">
-                 <div className="flex justify-end">
+                <div className="flex justify-end">
 
-                    <button
+                    {/* <button
                         type="button"
                         className="inline-flex items-center gap-x-2 rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                         onClick={() => setOpen(!open)}
                     >
                         Add new Product
                         <PlusCircleIcon className="-mr-0.5 h-5 w-5" aria-hidden="true" />
-                    </button>
+                    </button> */}
                 </div>
-                <DialogModal open={open} setOpen={setOpen} fetchProducts={fetchProducts}/>
+                <DialogModal open={open} setOpen={setOpen} fetchProducts={fetchProducts} />
                 <div className="mt-8 grid grid-cols-1 gap-y-12 sm:grid-cols-2 sm:gap-x-6 lg:grid-cols-4 xl:gap-x-8">
 
 
@@ -82,7 +93,7 @@ export default function ProductCard({ selectedCategories, selectedPriceRanges, s
                                 </div>
                                 <div className="relative mt-4">
                                     <h3 className="text-sm font-medium text-gray-900">{product.name}</h3>
-                                    <p className="mt-1 text-sm text-gray-500">white & black</p>
+                                    <p className="mt-1 text-sm text-gray-500">{product.category.name}</p>
                                 </div>
                                 <div className="absolute inset-x-0 top-0 flex h-72 items-end justify-end overflow-hidden rounded-lg p-4">
                                     <div

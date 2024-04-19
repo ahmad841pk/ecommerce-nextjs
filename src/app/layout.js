@@ -14,9 +14,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className="h-full bg-white">
       <body className={`${inter.className} h-full`} >
-        <Suspense>
+        {/* <Suspense>
         <Navbar/>
-        </Suspense>
+        </Suspense> */}
         {children}
         </body>
     </html>
