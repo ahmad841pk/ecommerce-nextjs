@@ -24,7 +24,6 @@ export default function Navbar({ products }) {
       handleSearch(term);
     }
 
-
   }, 300);
 
   const handleSuggestionClick = (suggestion) => {
@@ -36,10 +35,12 @@ export default function Navbar({ products }) {
 
   const handleSearch = (term) => {
     const params = new URLSearchParams(searchParams);
+    params.set('page', 1);
     if (term) {
       params.set('query', term);
     } else {
       params.delete('query');
+      params.delete('page');
     }
     replace(`${pathname}?${params.toString()}`);
     setShowSuggestions(false)

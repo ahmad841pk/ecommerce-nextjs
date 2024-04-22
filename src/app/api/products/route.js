@@ -41,6 +41,7 @@ export async function GET(req) {
   const categories = req.nextUrl.searchParams.get('categories');
   const priceRanges = req.nextUrl.searchParams.get('priceRanges');
   const sortBy = req.nextUrl.searchParams.get('sort');
+  const page = req.nextUrl.searchParams.get('currentPage');
 
   const priceRangeMapping = {
     '0': { gte: '0', lte: '25' },
@@ -98,8 +99,19 @@ export async function GET(req) {
     // Sorting
     const orderBy = sortBy ? { [sortBy]: 'asc' } : undefined;
 
+    const productsCount = await prisma.product.count({
+      where: whereClause,
+     });
+
+     // Pagination
+    const itemsPerPage = 4; // Number of items per page
+    const skip = page ? (itemsPerPage * (parseInt(page) - 1)) : 0;
+    const take = page ? itemsPerPage : undefined; // 
+
     const resp = await prisma.product.findMany({
       where: whereClause,
+      skip: skip,
+      take: take, // Use take only if a page number is provided
       include: {
         category: {
           select: {
@@ -109,7 +121,8 @@ export async function GET(req) {
       },
       orderBy: orderBy,
     });
-    return NextResponse.json({ data: resp, status: 200 });
+
+    return NextResponse.json({ data: resp, count:productsCount, status: 200 });
   } catch (error) {
     console.error('Error fetching products:', error);
     return NextResponse.error('Failed to fetch products', { status: 500 });
