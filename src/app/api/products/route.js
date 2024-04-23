@@ -37,11 +37,11 @@ export async function POST(req) {
 }
 
 export async function GET(req) {
-  const query = req.nextUrl.searchParams.get('query');
-  const categories = req.nextUrl.searchParams.get('categories');
-  const priceRanges = req.nextUrl.searchParams.get('priceRanges');
-  const sortBy = req.nextUrl.searchParams.get('sort');
-  const page = req.nextUrl.searchParams.get('currentPage');
+  const query = req?.nextUrl.searchParams.get('query');
+  const categories = req?.nextUrl.searchParams.get('categories');
+  const priceRanges = req?.nextUrl.searchParams.get('priceRanges');
+  const sortBy = req?.nextUrl.searchParams.get('sort');
+  const page = req?.nextUrl.searchParams.get('currentPage');
 
   const priceRangeMapping = {
     '0': { gte: '0', lte: '25' },
