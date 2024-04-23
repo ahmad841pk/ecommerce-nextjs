@@ -52,6 +52,7 @@ export default function ProductCard({ selectedCategories, selectedPriceRanges, s
             } else {
                 setPagiantion(true);
             }
+            console.log("data",data);
             setProducts(data);
             setTotal(count);
             setLoading(false);

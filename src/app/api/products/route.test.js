@@ -1,106 +1,137 @@
-global.fetch = require('node-fetch');
-global.Request = fetch.Request;
+import { GET } from './route'; // Import the GET function from your module
+import { PrismaClient } from '@prisma/client'; // Import PrismaClient
+import { NextResponse } from 'next/server';
 
-import { NextResponse } from "next/server";
-import { GET } from './route'; // Adjust the import path as necessary
-import { PrismaClient } from '@prisma/client';
-
-// Mock Prisma Client
-jest.mock('@prisma/client', () => ({
- PrismaClient: jest.fn().mockImplementation(() => ({
+// Mock PrismaClient instance
+jest.mock('@prisma/client', () => {
+  const mockPrisma = {
     product: {
+      count: jest.fn(),
       findMany: jest.fn(),
     },
- })),
-}));
+  };
+  return { PrismaClient: jest.fn(() => mockPrisma) };
+});
 
-describe('GET', () => {
- it('should fetch products', async () => {
-    // Mock data
-    const mockData = [
-        {
-            "id": 2,
-            "name": "oglasnik",
-            "price": "20",
-            "image": "oglasnik-logo.png",
-            "categoryId": 1
-        },
-        {
-            "id": 3,
-            "name": "cricket bat",
-            "price": "24",
-            "image": "criecktBat.jpg",
-            "categoryId": 1
-        },
-        {
-            "id": 4,
-            "name": "tennis ball",
-            "price": "30",
-            "image": "tennisBalljpg.jpg",
-            "categoryId": 1
-        },
-        {
-            "id": 5,
-            "name": "football",
-            "price": "50",
-            "image": "footballjpg.jpg",
-            "categoryId": 1
-        },
-        {
-            "id": 6,
-            "name": "laptop",
-            "price": "40",
-            "image": "laptopjpg.jpg",
-            "categoryId": 5
-        },
-        {
-            "id": 7,
-            "name": "Mobile",
-            "price": "74",
-            "image": "mobile.jpg",
-            "categoryId": 5
-        },
-        {
-            "id": 8,
-            "name": "headphone",
-            "price": "10",
-            "image": "headphonejpg.jpg",
-            "categoryId": 5
-        },
-        {
-            "id": 9,
-            "name": "Red Tee",
-            "price": "35",
-            "image": "redTee.jpg",
-            "categoryId": 4
-        },
-        {
-            "id": 10,
-            "name": "white tee",
-            "price": "80",
-            "image": "whiteTeejpg.jpg",
-            "categoryId": 4
-        }
-    ]
+describe('GET Function Tests', () => {
+  let prisma;
 
-    // Mock the Prisma client's findMany method to return the mock data
-    const prisma = new PrismaClient();
-    prisma.product.findMany.mockResolvedValue(mockData);
+  beforeAll(() => {
+    prisma = new PrismaClient();
+  });
 
-    // Mock the request object
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('Should return products with correct filters', async () => {
+    // Mock req object
     const req = {
       nextUrl: {
-        searchParams: {
-          get: jest.fn().mockReturnValue('query'), // Adjust the mock return value as needed
-        },
+        searchParams: new URLSearchParams({
+          query: 'keyword',
+          categories: '1,2,3',
+          priceRanges: '25,50',
+          sort: 'price',
+          currentPage: '1',
+        }),
       },
     };
+
+    // Mock the database responses
+    prisma.product.count.mockResolvedValueOnce(10); // Assuming there are 10 products in total
+    prisma.product.findMany.mockResolvedValueOnce([
+      { id: 1, name: 'Product 1', price: 20, categoryId: 1 },
+      { id: 2, name: 'Product 2', price: 30, categoryId: 2 },
+      { id: 3, name: 'Product 3', price: 40, categoryId: 3 },
+      // Add more mock products as needed
+      
+    ]);
 
     // Call the GET function
     const response = await GET(req);
 
     // Assert the response
-    expect(response).toEqual(NextResponse.json({ data: mockData, status: 200 }));
- });
-});
+    expect(response).toEqual(
+      NextResponse.json({
+        data: [
+            {
+                "id": 2,
+                "name": "oglasnik",
+                "price": "20",
+                "image": "oglasnik-logo.png",
+                "categoryId": 1,
+                "category": {
+                    "name": "sports"
+                }
+            },
+            {
+                "id": 3,
+                "name": "cricket bat",
+                "price": "24",
+                "image": "criecktBat.jpg",
+                "categoryId": 1,
+                "category": {
+                    "name": "sports"
+                }
+            },
+            {
+                "id": 4,
+                "name": "tennis ball",
+                "price": "30",
+                "image": "tennisBalljpg.jpg",
+                "categoryId": 1,
+                "category": {
+                    "name": "sports"
+                }
+            },
+          // Add more expected products as needed
+        ],
+        count: 13, // Assuming there are 13 products in total
+        status: 200,
+      })
+    );
 
+    // Verify database calls
+    expect(prisma.product.count).toHaveBeenCalledTimes(1);
+    expect(prisma.product.findMany).toHaveBeenCalledTimes(1);
+    expect(prisma.product.findMany).toHaveBeenCalledWith({
+      where: {
+        AND: [
+          {
+            name: {
+              contains: 'keyword',
+            },
+          },
+          {
+            categoryId: {
+              in: [1, 2, 3],
+            },
+          },
+          {
+            OR: [
+              { price: { gte: '25', lte: '50' } },
+              // Add more price range conditions as needed
+            ],
+          },
+        ],
+      },
+      skip: 0,
+      take: 4, // Assuming 4 items per page
+      include: {
+        category: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      orderBy: { price: 'asc' },
+    });
+  });
+
+  // Add more test cases as needed for different scenarios
+});
