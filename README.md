@@ -18,4 +18,7 @@ change database name according to your database
 
 # build instruction
 npm run build
+
+# to run tests
+npx jest or npm run test
 ```
