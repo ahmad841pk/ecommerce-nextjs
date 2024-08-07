@@ -21,4 +21,7 @@ npm run build
 
 # to run tests
 npx jest or npm run test
+
+# Demo Link
+https://ecommerce-nextjs-chi-sand.vercel.app/
 ```
